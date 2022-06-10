@@ -15,6 +15,7 @@ const OverviewFlow = () => {
         newNodeName: '',
         editNodeName: ''
     });
+    // 當前點擊的node
     const [activeNode, setActiveNode] = useState();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -22,7 +23,6 @@ const OverviewFlow = () => {
     const [reactFlowInstance, setReactFlowInstance] = useState();
 
     useEffect(() => {
-        console.log(activeNode?.data.label);
         if (activeNode) setInputData({ ...inputData, editNodeName: activeNode.data.label });
     }, [activeNode]);
 
@@ -31,7 +31,6 @@ const OverviewFlow = () => {
     const onInit = (reactFlowInstance) => {
         console.log('onInit, reactFlowInstance: ', reactFlowInstance);
         setReactFlowInstance(reactFlowInstance);
-        reactFlowInstance.fitView();
     };
 
     const getStateHandler = () => {
@@ -61,17 +60,6 @@ const OverviewFlow = () => {
 
     const editNodeHandler = () => {
         if (!activeNode) return;
-        console.log(activeNode);
-        console.log(inputData.editNodeName)
-        // console.log(nodes.map(node => {
-        //     if (node.id === activeNode.id) {
-        //         node.data = {
-        //             ...node.data,
-        //             label: inputData.editNodeName
-        //         }
-        //     }
-        //     return node;
-        // }))
         setNodes(nodes => nodes.map(node => {
             if (node.id === activeNode.id) {
                 node.data = {
@@ -101,6 +89,9 @@ const OverviewFlow = () => {
         });
     }
 
+    /**
+     * 當點擊node
+     */
     const clickHandler = (e) => {
         var htmlString = e.target.outerHTML.toString();
         var index = htmlString.indexOf(`data-id="`);
@@ -134,7 +125,7 @@ const OverviewFlow = () => {
             </div>
             <div className="form">
                 <input name="newNodeName" type="text" value={inputData.newNodeName} onChange={handleInputChange} placeholder='新節點名稱' />
-                <button onClick={addNodeHandler}>新增節點</button>
+                <button onClick={() => addNodeHandler()}>新增節點</button>
                 <button onClick={() => addNodeHandler(true, false)}>新增起始節點</button>
                 <button onClick={() => addNodeHandler(false, true)}>新增結尾節點</button> <br />
 

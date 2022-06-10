@@ -1,11 +1,64 @@
-.flow {
-    width: 50%;
-    height: 80%;
-    border: solid 0.5px gray;
-    margin-bottom: 12px;
-}
-
-.form {
+.wrap {
     width: 100%;
-    padding: 12px;
+    height: 100%;
+    display: flex;
+    
+    .flow-wrap {
+        width: 60%;
+        height: 100%;
+
+        .flow {
+            width: 100%;
+            height: 80%;
+            border: solid 0.5px gray;
+        }
+        
+        .form {
+            width: 100%;
+            height: 20%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            padding: 12px;
+            box-sizing: border-box;
+            overflow-y: auto;
+
+            .form-row button {
+                margin-left: 6px;
+            }
+        }
+
+        .export-btn {
+            width: 160px;
+            height: 36px;
+            background-color: gray;
+            color: white;
+            border: none;
+
+            &:hover {
+                background-color: lightgrey;
+            }
+        }
+    }
+
+    .code-wrap {
+        width: 40%;
+        height: 100%;
+
+        .code-textarea {
+            width: 100%;
+            height: 100%;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: scroll;
+            font-size: larger;
+        }
+    
+        .copy-btn {
+            position: absolute;
+            right: 24px;
+            top: 24px;
+        }
+    }
+
 }

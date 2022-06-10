@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactFlow, {
     addEdge,
     Controls,
@@ -19,22 +19,44 @@ const OverviewFlow = () => {
     const [activeNode, setActiveNode] = useState();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [mermaidCode, setMermaidCode] = useState('');
     // 所有node, edge, viewport
     const [reactFlowInstance, setReactFlowInstance] = useState();
+    const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
+
+    const onInit = (reactFlowInstance) => {
+        setReactFlowInstance(reactFlowInstance);
+    };
 
     useEffect(() => {
         if (activeNode) setInputData({ ...inputData, editNodeName: activeNode.data.label });
     }, [activeNode]);
 
-    const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
-
-    const onInit = (reactFlowInstance) => {
-        console.log('onInit, reactFlowInstance: ', reactFlowInstance);
-        setReactFlowInstance(reactFlowInstance);
-    };
-
-    const getStateHandler = () => {
-        console.log("current state", reactFlowInstance.toObject());
+    /**
+     * 導出mermaid code
+     */
+    const exportMermaidHandler = () => {
+        const edges = reactFlowInstance.toObject().edges;
+        const nodes = reactFlowInstance.toObject().nodes;
+        let nodeMap = {};
+        // 產生mermaid code
+        let mermaidCode = 'graph TD';
+        edges.forEach(edge => {
+            if (!nodeMap[edge.source]) {
+                nodeMap[edge.source] = nodes.find(node => node.id === edge.source);
+            }
+            if (!nodeMap[edge.target]) {
+                nodeMap[edge.target] = nodes.find(node => node.id === edge.target);
+            }
+            mermaidCode += `\n  ${edge.source}(${nodeMap[edge.source].data.label}) --> ${edge.target}(${nodeMap[edge.target].data.label})`;
+        })
+        // 將孤兒特別畫出來 (沒有連線的node)
+        nodes.forEach(node => {
+            if (!nodeMap[node.id]) {
+                mermaidCode += `\n  ${node.id}(${node.data.label})`;
+            }
+        })
+        setMermaidCode(mermaidCode);
     };
 
     /**
@@ -58,6 +80,9 @@ const OverviewFlow = () => {
         });
     }
 
+    /**
+     * 更新node文字
+     */
     const editNodeHandler = () => {
         if (!activeNode) return;
         setNodes(nodes => nodes.map(node => {
@@ -69,12 +94,10 @@ const OverviewFlow = () => {
             }
             return node;
         }));
-
         setInputData({
             ...inputData,
             editNodeName: ''
         })
-
         setActiveNode(null);
     }
 
@@ -93,11 +116,11 @@ const OverviewFlow = () => {
      * 當點擊node
      */
     const clickHandler = (e) => {
+        // 獲取node的id
         var htmlString = e.target.outerHTML.toString();
         var index = htmlString.indexOf(`data-id="`);
         index += 9;
         const currentId = htmlString.substr(index, 13);
-
         const currentNodeIndex = reactFlowInstance.getNodes().findIndex(node => node.id === currentId);
         if (currentNodeIndex >= 0) {
             setActiveNode(reactFlowInstance.getNodes()[currentNodeIndex]);
@@ -106,33 +129,44 @@ const OverviewFlow = () => {
 
     return (
         <>
-            <div className="flow">
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onInit={onInit}
-                    onClick={clickHandler}
-                    fitView
-                    attributionPosition="top-right"
-                >
-                    <Controls />
-                    <Background color="#aaa" gap={16} />
-                </ReactFlow>
+            <div className="wrap">
+                <div className='flow-wrap'>
+                    <div className="flow">
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            onInit={onInit}
+                            onClick={clickHandler}
+                            fitView
+                            attributionPosition="top-right"
+                        >
+                            <Controls />
+                            <Background color="#aaa" gap={16} />
+                        </ReactFlow>
 
-            </div>
-            <div className="form">
-                <input name="newNodeName" type="text" value={inputData.newNodeName} onChange={handleInputChange} placeholder='新節點名稱' />
-                <button onClick={() => addNodeHandler()}>新增節點</button>
-                <button onClick={() => addNodeHandler(true, false)}>新增起始節點</button>
-                <button onClick={() => addNodeHandler(false, true)}>新增結尾節點</button> <br />
+                    </div>
+                    <div className="form">
+                        <div className='form-row'>
+                            <input name="newNodeName" type="text" value={inputData.newNodeName} onChange={handleInputChange} placeholder='新節點名稱' />
+                            <button onClick={() => addNodeHandler()}>新增節點</button>
+                            <button onClick={() => addNodeHandler(true, false)}>新增起始節點</button>
+                            <button onClick={() => addNodeHandler(false, true)}>新增結尾節點</button> <br />
+                        </div>
+                        <div className='form-row'>
+                            <input name="editNodeName" type="text" value={inputData.editNodeName} onChange={handleInputChange} />
+                            <button onClick={editNodeHandler}>更新節點</button><br />
+                        </div>
+                        <button className="export-btn" onClick={exportMermaidHandler}>導出</button>
+                    </div>
 
-                <input name="editNodeName" type="text" value={inputData.editNodeName} onChange={handleInputChange} />
-                <button onClick={editNodeHandler}>更新節點</button><br />
-
-                <button onClick={getStateHandler}>導出</button>
+                </div>
+                <div className='code-wrap'>
+                    <textarea className='code-textarea' disabled value={mermaidCode} />
+                    <button className='copy-btn' onClick={() => navigator.clipboard.writeText(mermaidCode)}>複製</button>
+                </div>
             </div>
         </>
     );

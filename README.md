@@ -1,6 +1,6 @@
 # Generate Mermaid Code from FlowChart
 
-**This page can use this tool. [https://flowchart2mermaid.netlify.app](https://flowchart2mermaid.netlify.app)  **
+**Use the tool on [https://flowchart2mermaid.netlify.app](https://flowchart2mermaid.netlify.app)**
 
 
 ## Available Scripts

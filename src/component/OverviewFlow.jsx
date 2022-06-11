@@ -7,7 +7,6 @@ import ReactFlow, {
     useEdgesState,
 } from 'react-flow-renderer';
 import '../style/OverviewFlow.scss'
-
 import { nodes as initialNodes, edges as initialEdges } from '../constant/initial-elements';
 
 const OverviewFlow = () => {
@@ -26,11 +25,32 @@ const OverviewFlow = () => {
 
     const onInit = (reactFlowInstance) => {
         setReactFlowInstance(reactFlowInstance);
+        if (localStorage.getItem('lastSavedFlowObject')) {
+            // 若上次有儲存狀態回復上次狀態
+            const { nodes, edges } = JSON.parse(localStorage.getItem('lastSavedFlowObject'));
+            setNodes(nodes);
+            setEdges(edges);
+        }
     };
 
     useEffect(() => {
         if (activeNode) setInputData({ ...inputData, editNodeName: activeNode.data.label });
     }, [activeNode]);
+
+    /**
+     * 將所有nodes & edges清除
+     */
+    const clearAllHandler = () => {
+        setNodes([]);
+        setEdges([]);
+    };
+
+    /**
+     * 儲存react flow nodes & edges狀態object 至 localStorage
+     */
+    const saveHandler = () => {
+        localStorage.setItem('lastSavedFlowObject', JSON.stringify(reactFlowInstance.toObject()));
+    };
 
     /**
      * 導出mermaid code
@@ -78,7 +98,7 @@ const OverviewFlow = () => {
             ...inputData,
             newNodeName: ''
         });
-    }
+    };
 
     /**
      * 更新node文字
@@ -99,7 +119,7 @@ const OverviewFlow = () => {
             editNodeName: ''
         })
         setActiveNode(null);
-    }
+    };
 
     /**
      * input change handler
@@ -110,7 +130,7 @@ const OverviewFlow = () => {
             ...inputData,
             [target.name]: target.value
         });
-    }
+    };
 
     /**
      * 當點擊node
@@ -159,7 +179,11 @@ const OverviewFlow = () => {
                             <input name="editNodeName" type="text" value={inputData.editNodeName} onChange={handleInputChange} />
                             <button onClick={editNodeHandler}>更新節點</button><br />
                         </div>
-                        <button className="export-btn" onClick={exportMermaidHandler}>導出</button>
+                        <div>
+                            <button onClick={clearAllHandler}>清除所有</button>
+                            <button onClick={saveHandler}>儲存</button>
+                        </div>
+                        <button className='export-btn' onClick={exportMermaidHandler}>導出</button>
                     </div>
 
                 </div>

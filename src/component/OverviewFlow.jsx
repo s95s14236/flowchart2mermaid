@@ -5,17 +5,31 @@ import ReactFlow, {
     Background,
     useNodesState,
     useEdgesState,
+    useEdges,
 } from 'react-flow-renderer';
 import '../style/OverviewFlow.scss'
 import { nodes as initialNodes, edges as initialEdges } from '../constant/initial-elements';
 
+/**
+ * 該element是節點or連接線
+ * @param element 
+ * @returns 'EDGE' || 'NODE' 
+ */
+function isNodeOrEdge (element) {
+    if (element?.source) {
+        return 'EDGE';   
+    } else {
+        return 'NODE';
+    }
+}
+
 const OverviewFlow = () => {
     const [inputData, setInputData] = useState({
         newNodeName: '',
-        editNodeName: ''
+        editElementName: '',
     });
-    // 當前點擊的node
-    const [activeNode, setActiveNode] = useState();
+    // 當前focus的element (node or edge)
+    const [activeElement, setActiveElement] = useState();
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [mermaidCode, setMermaidCode] = useState('');
@@ -34,8 +48,13 @@ const OverviewFlow = () => {
     };
 
     useEffect(() => {
-        if (activeNode) setInputData({ ...inputData, editNodeName: activeNode.data.label });
-    }, [activeNode]);
+        if (activeElement) {
+            setInputData({
+                ...inputData,
+                editElementName: isNodeOrEdge(activeElement) === 'EDGE' ? (activeElement.label ?? '') : activeElement.data.label
+            }); 
+        }
+    }, [activeElement]);
 
     /**
      * 將所有nodes & edges清除
@@ -68,7 +87,7 @@ const OverviewFlow = () => {
             if (!nodeMap[edge.target]) {
                 nodeMap[edge.target] = nodes.find(node => node.id === edge.target);
             }
-            mermaidCode += `\n  ${edge.source}(${nodeMap[edge.source].data.label}) --> ${edge.target}(${nodeMap[edge.target].data.label})`;
+            mermaidCode += `\n  ${edge.source}(${nodeMap[edge.source].data.label}) -->${edge.label && `|${edge.label}|`} ${edge.target}(${nodeMap[edge.target].data.label})`;
         })
         // 將孤兒特別畫出來 (沒有連線的node)
         nodes.forEach(node => {
@@ -101,24 +120,36 @@ const OverviewFlow = () => {
     };
 
     /**
-     * 更新node文字
+     * 更新element文字
      */
-    const editNodeHandler = () => {
-        if (!activeNode) return;
-        setNodes(nodes => nodes.map(node => {
-            if (node.id === activeNode.id) {
-                node.data = {
-                    ...node.data,
-                    label: inputData.editNodeName
+    const editElementHandler = () => {
+        if (!activeElement) return;
+        if (isNodeOrEdge(activeElement) === 'EDGE') {
+            setEdges(edges => edges.map(edge => {
+                if (edge.id === activeElement.id) {
+                    edge = {
+                        ...edge,
+                        label: inputData.editElementName
+                    }
                 }
-            }
-            return node;
-        }));
+                return edge;
+            }));
+        } else {
+            setNodes(nodes => nodes.map(node => {
+                if (node.id === activeElement.id) {
+                    node.data = {
+                        ...node.data,
+                        label: inputData.editElementName
+                    }
+                }
+                return node;
+            }));
+        }
         setInputData({
             ...inputData,
-            editNodeName: ''
+            editElementName: ''
         })
-        setActiveNode(null);
+        setActiveElement(null);
     };
 
     /**
@@ -135,17 +166,16 @@ const OverviewFlow = () => {
     /**
      * 當點擊node
      */
-    const clickHandler = (e) => {
-        // 獲取node的id
-        var htmlString = e.target.outerHTML.toString();
-        var index = htmlString.indexOf(`data-id="`);
-        index += 9;
-        const currentId = htmlString.substr(index, 13);
-        const currentNodeIndex = reactFlowInstance.getNodes().findIndex(node => node.id === currentId);
-        if (currentNodeIndex >= 0) {
-            setActiveNode(reactFlowInstance.getNodes()[currentNodeIndex]);
-        }
-    };
+    const onNodeClick = ($evt, node) => {
+        setActiveElement(node);
+    }
+
+    /**
+     * 當點擊edge
+     */
+    const onEdgeClick = ($evt, edge) => {
+        setActiveElement(edge);
+    }
 
     return (
         <>
@@ -159,7 +189,8 @@ const OverviewFlow = () => {
                             onEdgesChange={onEdgesChange}
                             onConnect={onConnect}
                             onInit={onInit}
-                            onClick={clickHandler}
+                            onNodeClick={onNodeClick}
+                            onEdgeClick={onEdgeClick}
                             fitView
                             attributionPosition="top-right"
                         >
@@ -176,8 +207,8 @@ const OverviewFlow = () => {
                             <button onClick={() => addNodeHandler(false, true)}>新增結尾節點</button> <br />
                         </div>
                         <div className='form-row'>
-                            <input name="editNodeName" type="text" value={inputData.editNodeName} onChange={handleInputChange} />
-                            <button onClick={editNodeHandler}>更新節點</button><br />
+                            <input name="editElementName" type="text" value={inputData.editElementName} onChange={handleInputChange} />
+                            <button onClick={editElementHandler}>{isNodeOrEdge(activeElement) === 'EDGE' ? '更新連接線' : '更新節點'}</button><br />
                         </div>
                         <div>
                             <button onClick={clearAllHandler}>清除所有</button>

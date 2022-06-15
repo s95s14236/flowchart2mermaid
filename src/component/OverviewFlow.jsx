@@ -1,25 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactFlow, {
     addEdge,
     Controls,
     Background,
     useNodesState,
-    useEdgesState,
-    useEdges,
+    useEdgesState
 } from 'react-flow-renderer';
-import '../style/OverviewFlow.scss'
 import { nodes as initialNodes, edges as initialEdges } from '../constant/initial-elements';
+import { nodeTypes } from './common/nodes';
+import '../style/OverviewFlow.scss'
 
 /**
  * 該element是節點or連接線
  * @param element 
  * @returns 'EDGE' || 'NODE' 
  */
-function isNodeOrEdge (element) {
+function isNodeOrEdge(element) {
     if (element?.source) {
-        return 'EDGE';   
+        return 'EDGE';
     } else {
         return 'NODE';
+    }
+}
+
+/**
+ * 根據節點回傳mermaid shape code
+ * @param {} node
+ */
+function shapeCode(node) {
+    switch (node.type) {
+        case "circle":
+            return ["((", "))"];
+        case "rhombus":
+            return ["{", "}"];
+        default:
+            return ["(", ")"];
     }
 }
 
@@ -52,7 +67,7 @@ const OverviewFlow = () => {
             setInputData({
                 ...inputData,
                 editElementName: isNodeOrEdge(activeElement) === 'EDGE' ? (activeElement.label ?? '') : activeElement.data.label
-            }); 
+            });
         }
     }, [activeElement]);
 
@@ -87,12 +102,12 @@ const OverviewFlow = () => {
             if (!nodeMap[edge.target]) {
                 nodeMap[edge.target] = nodes.find(node => node.id === edge.target);
             }
-            mermaidCode += `\n  ${edge.source}(${nodeMap[edge.source].data.label}) -->${edge.label && `|${edge.label}|`} ${edge.target}(${nodeMap[edge.target].data.label})`;
+            mermaidCode += `\n  ${edge.source}${shapeCode(nodeMap[edge.source])[0]}${nodeMap[edge.source].data.label}${shapeCode(nodeMap[edge.source])[1]} -->${edge.label ? `|${edge.label}|` : ''} ${edge.target}${shapeCode(nodeMap[edge.target])[0]}${nodeMap[edge.target].data.label}${shapeCode(nodeMap[edge.target])[1]}`;
         })
         // 將孤兒特別畫出來 (沒有連線的node)
         nodes.forEach(node => {
             if (!nodeMap[node.id]) {
-                mermaidCode += `\n  ${node.id}(${node.data.label})`;
+                mermaidCode += `\n  ${node.id}${shapeCode(node)[0]}${node.data.label}${shapeCode(node)[1]}`;
             }
         })
         setMermaidCode(mermaidCode);
@@ -177,6 +192,25 @@ const OverviewFlow = () => {
         setActiveElement(edge);
     }
 
+    /**
+     * 更換節點形狀, 若不傳值則改回方形
+     * @param {} shape "circle" | "rhombus" 
+     */
+    const changeToShape = (shape) => {
+        if (!activeElement) return;
+        //TODO: 需判斷為node
+        setNodes(nodes => nodes.map(node => {
+            if (node.id === activeElement.id) {
+                if (!shape) {
+                    node.type = undefined;
+                } else {
+                    node.type = shape;
+                }
+            }
+            return node;
+        }));
+    }
+
     return (
         <>
             <div className="wrap">
@@ -191,6 +225,7 @@ const OverviewFlow = () => {
                             onInit={onInit}
                             onNodeClick={onNodeClick}
                             onEdgeClick={onEdgeClick}
+                            nodeTypes={nodeTypes}
                             fitView
                             attributionPosition="top-right"
                         >
@@ -208,7 +243,10 @@ const OverviewFlow = () => {
                         </div>
                         <div className='form-row'>
                             <input name="editElementName" type="text" value={inputData.editElementName} onChange={handleInputChange} />
-                            <button onClick={editElementHandler}>{isNodeOrEdge(activeElement) === 'EDGE' ? '更新連接線' : '更新節點'}</button><br />
+                            <button onClick={editElementHandler}>{isNodeOrEdge(activeElement) === 'EDGE' ? '更新連接線' : '更新節點'}文字</button>
+                            <button onClick={() => changeToShape("rhombus")}>菱形</button>
+                            <button onClick={() => changeToShape("circle")}>圓形</button>
+                            <button onClick={() => changeToShape()}>方形</button>
                         </div>
                         <div>
                             <button onClick={clearAllHandler}>清除所有</button>

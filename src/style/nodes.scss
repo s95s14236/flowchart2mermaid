@@ -1,0 +1,44 @@
+.diamond {
+    width: 50px;
+    height: 50px;
+    transform: rotate(45deg);
+    padding: 1rem;
+    border: solid 1px black;
+    overflow: hidden;
+}
+
+.rhombus-node-text {
+    text-align: center;
+    top: 60px;
+    left: 18px;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 0px;
+    font-size: xx-small;
+}
+
+.circle {
+    width: 50px;
+    height: 50px;
+    padding: 1rem;
+    border-radius: 50%;
+    border: solid 1px black;
+    overflow: hidden;
+    font-size: xx-small;
+
+}
+
+
+.circle-node-text {
+    text-align: center;
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin: 0px;
+}
+
+.selected {
+    background-size: 50px 50px;
+    background-color: rgba($color: #f0f0f3, $alpha: 0.2);
+}

@@ -10,6 +10,7 @@ import ReactFlow, {
 import { nodes as initialNodes, edges as initialEdges } from '../constant/initial-elements';
 import { nodeTypes } from './common/nodes';
 import '../style/OverviewFlow.scss'
+import MermaidFlow from './MermaidFlow';
 
 /**
  * 該element是節點or連接線
@@ -262,6 +263,7 @@ const OverviewFlow = () => {
                 </div>
                 <div className='code-wrap'>
                     <textarea className='code-textarea' disabled value={mermaidCode} />
+                    <MermaidFlow mermaidCode={mermaidCode} />
                     <button className='copy-btn' onClick={() => navigator.clipboard.writeText(mermaidCode)}>複製</button>
                 </div>
             </div>

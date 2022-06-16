@@ -4,7 +4,8 @@ import ReactFlow, {
     Controls,
     Background,
     useNodesState,
-    useEdgesState
+    useEdgesState,
+    MarkerType
 } from 'react-flow-renderer';
 import { nodes as initialNodes, edges as initialEdges } from '../constant/initial-elements';
 import { nodeTypes } from './common/nodes';
@@ -50,7 +51,10 @@ const OverviewFlow = () => {
     const [mermaidCode, setMermaidCode] = useState('');
     // 所有node, edge, viewport
     const [reactFlowInstance, setReactFlowInstance] = useState();
-    const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
+    const onConnect = (params) => {
+        params.markerEnd = {type: MarkerType.ArrowClosed};
+        setEdges((eds) => addEdge(params, eds));
+    };
 
     const onInit = (reactFlowInstance) => {
         setReactFlowInstance(reactFlowInstance);

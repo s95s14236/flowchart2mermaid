@@ -34,14 +34,14 @@ const CircleNode = ({ data }) => {
         type="target"
         position="top"
         id={`${data.id}.top`}
-        // style={{ borderRadius: "0" }}
+        style={{ zIndex: 1 }}
       />
       <div id={data.id} className="circle-node-text">{data.label}</div>
       <Handle
         type="source"
         position="bottom"
         id={`${data.id}.bottom`}
-        // style={{ top: "30%", borderRadius: 0 }}
+        style={{ zIndex: 1 }}
       />
     </div>
   );
@@ -54,7 +54,7 @@ const TriangleNode = ({ data }) => {
         type="target"
         position="top"
         id={`${data.id}.top`}
-        style={{ borderRadius: 0 }}
+        style={{ borderRadius: 0, zIndex: 1 }}
       />
       <div id={data.id} className="triangle-node-text">
         {data.label}
@@ -63,13 +63,13 @@ const TriangleNode = ({ data }) => {
         type="source"
         position="bottom"
         id={`${data.id}.bottom1`}
-        style={{ left: "30%", borderRadius: 0 }}
+        style={{ left: "30%", borderRadius: 0, zIndex: 1 }}
       />
       <Handle
         type="source"
         position="bottom"
         id={`${data.id}.bottom2`}
-        style={{ left: "70%", borderRadius: 0 }}
+        style={{ left: "70%", borderRadius: 0, zIndex: 1 }}
       />
     </div>
   );
@@ -82,7 +82,7 @@ const RhombusNode = ({ data }) => {
         type="target"
         position="top"
         id={`${data.id}.top`}
-        style={{ top: "23%" }}
+        style={{ top: "23%", zIndex: 1 }}
       />
       <div id={data.id} className="rhombus-node-text">
         {data.label}
@@ -92,7 +92,7 @@ const RhombusNode = ({ data }) => {
         type="source"
         position="bottom"
         id={`${data.id}.bottom`}
-        style={{ bottom: "-15%" }}
+        style={{ bottom: "-15%", zIndex: 1 }}
       />
     </div>
   );
